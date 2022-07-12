@@ -46,11 +46,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GeofencingClient geofencingClient;
     private GeofenceHelper geofenceHelper;
 
-    private float GEOFENCE_RADIUS = 20;
+    private float GEOFENCE_RADIUS = 5;
     private String GEOFENCE_ID = "SOME_GEOFENCE_ID";
 
     private int FINE_LOCATION_ACCESS_REQUEST_CODE = 10001;
     private int BACKGROUND_LOCATION_ACCESS_REQUEST_CODE = 10002;
+
+    private EditText simpleEditText;
 
     FusedLocationProviderClient client;
     SupportMapFragment mapFragment;
@@ -66,24 +68,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         client = LocationServices.getFusedLocationProviderClient(this);
         getCurrentLocation();
 
+        simpleEditText = (EditText) findViewById(R.id.simpleEditText);
         geofencingClient = LocationServices.getGeofencingClient(this);
         geofenceHelper = new GeofenceHelper(this);
 
-        Button btn = (Button) findViewById(R.id.button);
-        btn.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                mMap.clear();
-            }
-        });
-
-        Button btn1 = (Button) findViewById(R.id.button1);
-        btn1.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                showAlert();
-            }
-        });
     }
 
+    // get current location to open app on users house
     void getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -105,7 +96,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         public void onMapReady(@NonNull GoogleMap googleMap) {
                             LatLng latlng = new LatLng(location.getLatitude(), location.getLongitude());
                             MarkerOptions options = new MarkerOptions().position(latlng).title("You are here");
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng,20));
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng,25));
                         }
                     });
                 }
@@ -114,13 +105,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
-
+/*
+~~~~~~ Original code used before changing to a non-alert box. Alert box pops up and prompts user to enter room name in an edittext.
+~~~~~~~ Changed because it is easier to just have the edittext on the default screen to pass the text to label the marker.
     //https://stackoverflow.com/questions/10903754/input-text-dialog-android
     void showAlert(){
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
         builder.setTitle("Title");
         View viewInflated = LayoutInflater.from(MapsActivity.this).inflate(R.layout.dialog, (ViewGroup) findViewById(android.R.id.content), false);
-        final EditText input = (EditText) viewInflated.findViewById(R.id.input);
+        input = (EditText) viewInflated.findViewById(R.id.input);
         builder.setView(viewInflated);
         builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
@@ -135,18 +128,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 dialog.cancel();
             }
         });
-
         builder.show();
-    }
+    } */
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        //LatLng latLng = new LatLng(currentLocation.getLatitude(),
-        //      currentLocation.getLongitude());
-        //MarkerOptions markerOptions = new MarkerOptions().position(latLng);
-        //mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         enableUserLocation();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -214,12 +201,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapLongClick(LatLng latLng) {
         if (Build.VERSION.SDK_INT >= 29) {
-            //We need background permission
+            // background permission
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 handleMapLongClick(latLng);
             } else {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
-                    //We show a dialog and ask for permission
+                    //show a dialog and ask for permission
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_ACCESS_REQUEST_CODE);
                 } else {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_ACCESS_REQUEST_CODE);
@@ -229,7 +216,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             handleMapLongClick(latLng);
         }
-        showAlert();
+        simpleEditText.setText("");
     }
 
     private void handleMapLongClick(LatLng latLng) {
@@ -271,7 +258,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void addMarker(LatLng latLng) {
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng);
+        String label = simpleEditText.getText().toString();
+        MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(label);
         mMap.addMarker(markerOptions);
     }
 
@@ -279,8 +267,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         CircleOptions circleOptions = new CircleOptions();
         circleOptions.center(latLng);
         circleOptions.radius(radius);
-        circleOptions.strokeColor(Color.argb(255, 255, 0,0));
-        circleOptions.fillColor(Color.argb(64, 255, 0,0));
+        circleOptions.strokeColor(Color.argb(255, 176, 116,191));
+        circleOptions.fillColor(Color.argb(64, 176, 116,191));
         circleOptions.strokeWidth(4);
         mMap.addCircle(circleOptions);
     }
